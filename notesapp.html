@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Notes — Modern Web App</title>
+
+<!-- Google Font -->
+<link href="https://fonts.googleapis.com/css2?family=Lexend+Deca:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg-light: #f5f9fa;
+  --card-light: #ffffff;
+  --text-light: #0d1b2a;
+  --muted-light: #6c757d;
+  --accent: #0ea5a4;
+  --accent-hover: #0b9488;
+
+  --bg-dark: #121212;
+  --card-dark: #1e1e1e;
+  --text-dark: #e9ecef;
+  --muted-dark: #a1a1a1;
+
+  --radius: 14px;
+  --shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  font-family: 'Lexend Deca', sans-serif;
+  background: linear-gradient(135deg, #f5f9fa, #e6f4f1);
+  color: var(--text-light);
+  transition: background 0.3s, color 0.3s;
+  padding-top: 70px; /* space for fixed nav */
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100%;
+}
+body.dark {
+  background: var(--bg-dark);
+  color: var(--text-dark);
+}
+
+/* Navbar */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  background: var(--card-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  box-shadow: var(--shadow);
+  z-index: 1000;
+  transition: background 0.3s;
+}
+body.dark nav {
+  background: var(--card-dark);
+}
+nav h1 {
+  font-size: 20px;
+  margin: 0;
+  font-weight: 700;
+}
+.nav-controls {
+  display: flex;
+  gap: 8px;
+}
+.btn {
+  border: none;
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  background: var(--card-light);
+  color: var(--text-light);
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.25s, transform 0.1s;
+}
+body.dark .btn {
+  background: var(--card-dark);
+  color: var(--text-dark);
+}
+.btn:hover {
+  background: var(--accent);
+  color: white;
+  transform: translateY(-1px);
+}
+.btn.primary {
+  background: var(--accent);
+  color: white;
+}
+.btn.primary:hover {
+  background: var(--accent-hover);
+}
+
+/* Layout */
+.app {
+  width: 80%;
+  max-width: 1400px;
+  margin: 22px auto;
+  padding: 20px;
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 20px;
+}
+
+/* On small screens, reduce margins and use full width */
+@media (max-width: 900px) {
+  .app {
+    width: 100%;
+    margin: 10px 0;
+    padding: 10px;
+    grid-template-columns: 1fr; /* stack sidebar and editor */
+  }
+}
+
+.card {
+  background: var(--card-light);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 14px;
+  transition: background 0.3s;
+}
+body.dark .card {
+  background: var(--card-dark);
+}
+
+/* Sidebar */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  height: 78vh;
+}
+.search {
+  display: flex;
+  padding: 8px;
+}
+.search input {
+  flex: 1;
+  padding: 10px;
+  border-radius: var(--radius);
+  border: 1px solid #d0d7de;
+  font-size: 14px;
+}
+.notes-list {
+  overflow: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+.note-item {
+  padding: 10px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background 0.2s;
+}
+.note-item:hover {
+  background: rgba(14,165,164,0.08);
+}
+.note-item.active {
+  background: rgba(14,165,164,0.15);
+}
+.note-title {
+  font-weight: 600;
+}
+.note-meta {
+  font-size: 12px;
+  color: var(--muted-light);
+}
+body.dark .note-meta {
+  color: var(--muted-dark);
+}
+
+/* Editor */
+.editor {
+  display: flex;
+  flex-direction: column;
+  height: 78vh;
+}
+.editor input.title {
+  font-size: 18px;
+  padding: 10px;
+  border-radius: var(--radius);
+  border: 1px solid #d0d7de;
+  font-weight: 600;
+}
+textarea {
+  flex: 1;
+  padding: 14px;
+  border-radius: var(--radius);
+  border: 1px solid #d0d7de;
+  resize: none;
+  font-family: inherit;
+  font-size: 15px;
+  margin-top: 10px;
+}
+.bottom {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--muted-light);
+}
+body.dark .bottom {
+  color: var(--muted-dark);
+}
+.preview {
+  padding: 14px;
+  border-radius: var(--radius);
+  background: rgba(14,165,164,0.05);
+  margin-top: 12px;
+  overflow: auto;
+  min-height: 200px;
+}
+
+/* Footer */
+footer {
+  text-align: center;
+  padding: 12px;
+  font-size: 13px;
+  color: var(--muted-light);
+  border-top: 1px solid rgba(0,0,0,0.05);
+}
+body.dark footer {
+  color: var(--muted-dark);
+  border-color: rgba(255,255,255,0.05);
+}
+
+/* Responsive */
+@media (max-width:900px) {
+  .app {
+    grid-template-columns: 1fr;
+    padding: 10px;
+  }
+  .sidebar { order: 2; height: auto; }
+  .editor { order: 1; height: auto; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <h1>Notes</h1>
+  <div class="nav-controls">
+    <button class="btn primary" id="newBtn">New</button>
+    <button class="btn" id="exportBtn">Export</button>
+    <button class="btn" id="importBtn">Import</button>
+    <button class="btn" id="clearBtn">Clear</button>
+    <button class="btn" id="darkModeToggle">🌓</button>
+  </div>
+</nav>
+
+<div class="app">
+  <div class="card sidebar">
+    <div class="search">
+      <input id="searchInput" placeholder="Search notes..." />
+    </div>
+    <div class="notes-list" id="notesList"></div>
+    <div style="padding:10px;font-size:12px;color:gray;">
+      LocalStorage • <span id="noteCount">0</span> notes
+    </div>
+  </div>
+
+  <div class="card editor">
+    <input class="title" id="noteTitle" placeholder="Note title..." />
+    <textarea id="noteBody" placeholder="Write your note here..."></textarea>
+    <div class="bottom">
+      <span id="noteInfo">No note selected</span>
+      <span id="charWordCount">0 chars, 0 words</span>
+    </div>
+    <div id="previewArea" style="display:none;">
+      <div class="preview" id="previewContent"></div>
+    </div>
+    <button class="btn" id="previewToggle" style="margin-top:10px;">Preview</button>
+    <button class="btn" id="deleteBtn" style="margin-top:10px;background:#ff4d4d;color:white;">Delete</button>
+  </div>
+</div>
+
+<footer>
+  Developed by Gean Paulo from Manila
+</footer>
+
+<input type="file" id="fileInput" accept="application/json" style="display:none" />
+
+<script>
+const STORAGE_KEY = 'notes_v1';
+let notes = [];
+let activeId = null;
+
+const notesList = document.getElementById('notesList');
+const noteTitle = document.getElementById('noteTitle');
+const noteBody = document.getElementById('noteBody');
+const noteInfo = document.getElementById('noteInfo');
+const charWordCount = document.getElementById('charWordCount');
+const previewToggle = document.getElementById('previewToggle');
+const previewArea = document.getElementById('previewArea');
+const previewContent = document.getElementById('previewContent');
+const searchInput = document.getElementById('searchInput');
+const exportBtn = document.getElementById('exportBtn');
+const importBtn = document.getElementById('importBtn');
+const fileInput = document.getElementById('fileInput');
+const clearBtn = document.getElementById('clearBtn');
+const deleteBtn = document.getElementById('deleteBtn');
+const noteCount = document.getElementById('noteCount');
+
+const id = () => 'n_' + Date.now();
+const now = () => new Date().toISOString();
+
+function load() {
+  notes = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+}
+function saveAll() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
+  renderList(searchInput.value);
+}
+
+function renderList(filter='') {
+  const q = filter.toLowerCase();
+  notesList.innerHTML = '';
+  notes
+    .filter(n => n.title.toLowerCase().includes(q) || n.body.toLowerCase().includes(q))
+    .sort((a,b) => new Date(b.updated)-new Date(a.updated))
+    .forEach(n => {
+      const el = document.createElement('div');
+      el.className = 'note-item' + (n.id===activeId?' active':'');
+      el.innerHTML = `<div class="note-title">${n.title || '(Untitled)'}</div><div class="note-meta">${new Date(n.updated).toLocaleString()}</div>`;
+      el.onclick = () => selectNote(n.id);
+      notesList.appendChild(el);
+    });
+  noteCount.textContent = notes.length;
+}
+
+function selectNote(id) {
+  const n = notes.find(x=>x.id===id);
+  if (!n) return;
+  activeId = n.id;
+  noteTitle.value = n.title;
+  noteBody.value = n.body;
+  noteInfo.textContent = `Last saved: ${new Date(n.updated).toLocaleString()}`;
+  updateCounts();
+}
+
+function newNote() {
+  const n = { id: id(), title: '', body: '', updated: now() };
+  notes.push(n);
+  saveAll();
+  selectNote(n.id);
+}
+
+function saveActive() {
+  if (!activeId) return;
+  const n = notes.find(x=>x.id===activeId);
+  n.title = noteTitle.value;
+  n.body = noteBody.value;
+  n.updated = now();
+  saveAll();
+}
+
+function deleteActive() {
+  if (!activeId) return;
+  if (!confirm('Delete this note?')) return;
+  notes = notes.filter(n=>n.id!==activeId);
+  activeId = null;
+  noteTitle.value = '';
+  noteBody.value = '';
+  noteInfo.textContent = 'No note selected';
+  saveAll();
+}
+
+function updateCounts() {
+  const text = noteBody.value;
+  charWordCount.textContent = `${text.length} chars, ${text.trim().split(/\s+/).filter(Boolean).length} words`;
+}
+
+function renderMarkdown(md) {
+  if (!md) return '';
+  let html = md.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+  html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+  html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+  html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+  html = html.replace(/\`(.*?)\`/g, '<code>$1</code>');
+  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+  return html.replace(/\n/g, '<br>');
+}
+
+function togglePreview() {
+  if (previewArea.style.display === 'none') {
+    previewArea.style.display = 'block';
+    previewContent.innerHTML = renderMarkdown(noteBody.value);
+    previewToggle.textContent = 'Edit';
+  } else {
+    previewArea.style.display = 'none';
+    previewToggle.textContent = 'Preview';
+  }
+}
+
+document.getElementById('newBtn').onclick = newNote;
+noteTitle.oninput = saveActive;
+noteBody.oninput = () => { saveActive(); updateCounts(); if (previewArea.style.display!=='none') previewContent.innerHTML = renderMarkdown(noteBody.value); };
+previewToggle.onclick = togglePreview;
+deleteBtn.onclick = deleteActive;
+searchInput.oninput = () => renderList(searchInput.value);
+exportBtn.onclick = () => {
+  const blob = new Blob([JSON.stringify(notes, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'notes.json'; a.click();
+  URL.revokeObjectURL(url);
+};
+importBtn.onclick = () => fileInput.click();
+fileInput.onchange = e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const imported = JSON.parse(reader.result);
+      notes = notes.concat(imported.filter(im => !notes.find(n => n.id===im.id)));
+      saveAll();
+    } catch { alert('Import failed'); }
+  };
+  reader.readAsText(file);
+};
+clearBtn.onclick = () => {
+  if (confirm('Clear all notes?')) { notes = []; saveAll(); activeId=null; noteTitle.value=''; noteBody.value=''; }
+};
+
+// Dark mode toggle
+document.getElementById('darkModeToggle').onclick = () => {
+  document.body.classList.toggle('dark');
+  localStorage.setItem('darkMode', document.body.classList.contains('dark'));
+};
+
+// Init
+(() => {
+  load();
+  if (notes.length) selectNote(notes[0].id);
+  renderList();
+  updateCounts();
+  if (localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark');
+})();
+</script>
+</body>
+</html>
