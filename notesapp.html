@@ -54,7 +54,7 @@ nav {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 20px;
+  padding: 10px 16px;
   box-shadow: var(--shadow);
   z-index: 1000;
   transition: background 0.3s;
@@ -66,48 +66,61 @@ nav h1 {
   font-size: 20px;
   margin: 0;
   font-weight: 700;
-  flex-shrink: 0;
+  user-select: none;
 }
 .nav-controls {
   display: flex;
-  gap: 6px;
+  gap: 8px;
 }
-
-/* Nav buttons with teal background and icon color teal */
-.nav-controls button {
-  background: var(--accent);
-  color: white;
+.btn {
   border: none;
+  padding: 8px 10px;
   border-radius: var(--radius);
-  padding: 6px;
+  background: var(--accent);
+  color: #ffffff;
   cursor: pointer;
+  font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  transition: background 0.3s ease;
+  width: 36px;
+  height: 36px;
+  transition: background 0.25s;
+  user-select: none;
 }
-.nav-controls button:hover {
+.btn svg {
+  fill: #ffffff;
+  width: 18px;
+  height: 18px;
+}
+.btn:hover {
   background: var(--accent-hover);
 }
-body.dark .nav-controls button {
+body.dark .btn {
   background: var(--accent);
-  color: white;
+  color: #ffffff;
 }
-body.dark .nav-controls button:hover {
+body.dark .btn:hover {
   background: var(--accent-hover);
 }
 
-/* SVG icons use currentColor for stroke */
-.nav-controls svg {
-  width: 20px;
-  height: 20px;
-  stroke: currentColor;
-  stroke-width: 1.5;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  fill: none;
+/* Tooltip */
+.btn[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  background: var(--accent);
+  color: white;
+  padding: 4px 8px;
+  font-size: 12px;
+  border-radius: 6px;
+  bottom: 48px;
+  white-space: nowrap;
+  user-select: none;
+  pointer-events: none;
+  opacity: 0.95;
+  transform: translateX(-50%);
+  left: 50%;
+  z-index: 1100;
 }
 
 /* Layout */
@@ -173,6 +186,7 @@ body.dark .card {
   cursor: pointer;
   border: 1px solid transparent;
   transition: background 0.2s;
+  user-select: none;
 }
 .note-item:hover {
   background: rgba(14,165,164,0.08);
@@ -213,7 +227,17 @@ textarea {
   font-family: inherit;
   font-size: 15px;
   margin-top: 10px;
+  min-height: 200px;
+  overflow-y: hidden; /* hide scrollbar for better effect with auto resize */
 }
+
+/* Bigger textarea on mobile */
+@media (max-width: 600px) {
+  textarea {
+    min-height: 300px;
+  }
+}
+
 .bottom {
   display: flex;
   justify-content: space-between;
@@ -226,40 +250,26 @@ body.dark .bottom {
 }
 
 /* Save and Delete buttons compact */
-.editor-actions {
-  margin-top: 12px;
+.action-buttons {
+  margin-top: 10px;
   display: flex;
   gap: 10px;
 }
-.btn {
-  border: none;
-  padding: 8px 12px;
-  border-radius: var(--radius);
-  cursor: pointer;
-  font-weight: 600;
-  transition: background 0.25s;
+.action-buttons .btn {
+  width: auto;
+  padding: 8px 16px;
+  font-size: 14px;
+  flex: 1;
+  max-width: 100px;
+  border-radius: 12px;
+  user-select: none;
 }
-.btn.save {
-  background: var(--accent);
-  color: white;
-  width: 80px;
-  text-align: center;
-}
-.btn.save:hover {
-  background: var(--accent-hover);
-}
-.btn.delete {
+.action-buttons .btn.delete {
   background: #ff4d4d;
   color: white;
-  width: 80px;
-  text-align: center;
 }
-.btn.delete:hover {
-  background: #cc3a3a;
-}
-.btn:disabled {
-  opacity: 0.5;
-  cursor: default;
+.action-buttons .btn.delete:hover {
+  background: #e03e3e;
 }
 
 /* Footer */
@@ -269,6 +279,7 @@ footer {
   font-size: 13px;
   color: var(--muted-light);
   border-top: 1px solid rgba(0,0,0,0.05);
+  user-select: none;
 }
 body.dark footer {
   color: var(--muted-dark);
@@ -290,63 +301,167 @@ body.dark footer {
 
 <nav>
   <h1>Notes</h1>
-  <div class="nav-controls" role="toolbar" aria-label="App toolbar">
-    <button id="newBtn" aria-label="New Note" title="New Note" type="button">
-      <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" xmlns="http://www.w3.org/2000/svg" >
-        <path d="M12 5v14M5 12h14"/>
-      </svg>
+  <div class="nav-controls" role="toolbar" aria-label="App actions">
+    <button class="btn" id="newBtn" title="New Note" aria-label="Create new note" type="button" >
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 11H13V5h-2v6H5v2h6v6h2v-6h6z"/></svg>
     </button>
-    <button id="exportBtn" aria-label="Export Notes" title="Export Notes" type="button">
-      <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" xmlns="http://www.w3.org/2000/svg" >
-        <path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 12v8M16 8l-4-4-4 4M12 4v12"/>
-      </svg>
+    <button class="btn" id="exportBtn" title="Export Notes" aria-label="Export notes as JSON" type="button">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20h14v-2H5v2zm7-18l-5 5h3v6h4v-6h3l-5-5z"/></svg>
     </button>
-    <button id="importBtn" aria-label="Import Notes" title="Import Notes" type="button">
-      <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" xmlns="http://www.w3.org/2000/svg" >
-        <path d="M12 12v8M8 16l4 4 4-4M20 17v-2a2 2 0 00-2-2H6a2 2 0 00-2 2v2"/>
-      </svg>
+    <button class="btn" id="importBtn" title="Import Notes" aria-label="Import notes from JSON file" type="button">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2v6h3l-5 5-5-5h3V2h4zm-9 18v-2h14v2H5z"/></svg>
     </button>
-    <button id="clearBtn" aria-label="Clear All Notes" title="Clear All Notes" type="button">
-      <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" xmlns="http://www.w3.org/2000/svg" >
-        <path d="M3 6h18M9 6v12a3 3 0 006 0V6"/>
-      </svg>
+    <button class="btn" id="clearBtn" title="Clear All Notes" aria-label="Clear all notes" type="button">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7h12v12H6z" fill="none"/><path d="M19 7H5v14h14V7zM8 9h2v8H8zm6 0h2v8h-2zM15.5 4l-1-1h-5l-1 1H5v2h14V4z"/></svg>
     </button>
-    <button id="darkModeToggle" aria-label="Toggle Dark Mode" title="Toggle Dark Mode" type="button">
-      <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" xmlns="http://www.w3.org/2000/svg" >
-        <path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z"/>
-      </svg>
+    <button class="btn" id="darkModeToggle" title="Toggle Dark Mode" aria-label="Toggle dark mode" type="button">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.79A9 9 0 0112.21 3c0-.15 0-.29.01-.44A7.5 7.5 0 0021 12.79z"/></svg>
     </button>
   </div>
 </nav>
 
 <div class="app">
-  <div class="card sidebar">
+  <div class="card sidebar" role="region" aria-label="Notes list">
     <div class="search">
       <input id="searchInput" placeholder="Search notes..." aria-label="Search notes" />
     </div>
-    <div class="notes-list" id="notesList" tabindex="0" role="list" aria-label="List of notes"></div>
+    <div class="notes-list" id="notesList" tabindex="0"></div>
     <div style="padding:10px;font-size:12px;color:gray;">
       LocalStorage • <span id="noteCount">0</span> notes
     </div>
   </div>
 
-  <div class="card editor">
+  <div class="card editor" role="region" aria-label="Note editor">
     <input class="title" id="noteTitle" placeholder="Note title..." aria-label="Note title" />
     <textarea id="noteBody" placeholder="Write your note here..." aria-label="Note body"></textarea>
     <div class="bottom">
       <span id="noteInfo">No note selected</span>
       <span id="charWordCount">0 chars, 0 words</span>
     </div>
-    <div class="editor-actions">
-      <button class="btn save" id="saveBtn" disabled>Save</button>
-      <button class="btn delete" id="deleteBtn" disabled>Delete</button>
+    <div class="action-buttons">
+      <button class="btn save" id="saveBtn" type="button" aria-label="Save note">Save</button>
+      <button class="btn delete" id="deleteBtn" type="button" aria-label="Delete note">Delete</button>
     </div>
   </div>
 </div>
 
 <footer>
-  Developed by Gean Paulo from Manila
+  <div class="footer-container">
+    <div class="footer-left">
+      Developed by Gean Paulo from Manila — 
+      <a href="https://geanpaulo.link" target="_blank" rel="noopener noreferrer">geanpaulo.link</a>
+    </div>
+    <div class="footer-right">
+      <a href="https://facebook.com/geanpaulofrancois" target="_blank" rel="noopener noreferrer" aria-label="Facebook" class="social-btn" title="Facebook">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M22 12a10 10 0 10-11.5 9.87v-6.98h-2.7v-2.9h2.7v-2.2c0-2.67 1.6-4.15 4-4.15 1.16 0 2.38.2 2.38.2v2.6h-1.33c-1.31 0-1.72.82-1.72 1.66v2h2.92l-.47 2.9h-2.45v6.98A10 10 0 0022 12z"/>
+        </svg>
+      </a>
+      <a href="https://instagram.com/geanpau.lo" target="_blank" rel="noopener noreferrer" aria-label="Instagram" class="social-btn" title="Instagram">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M7 2C4.24 2 2 4.24 2 7v10c0 2.76 2.24 5 5 5h10c2.76 0 5-2.24 5-5V7c0-2.76-2.24-5-5-5H7zm10 3.5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zM12 7a5 5 0 110 10 5 5 0 010-10zm0 2a3 3 0 100 6 3 3 0 000-6z"/>
+        </svg>
+      </a>
+      <a href="https://github.com/geanpaulofrancois" target="_blank" rel="noopener noreferrer" aria-label="GitHub" class="social-btn" title="GitHub">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" >
+          <path d="M12 2a10 10 0 00-3.16 19.49c.5.09.68-.22.68-.48v-1.68c-2.78.6-3.37-1.34-3.37-1.34a2.65 2.65 0 00-1.11-1.46c-.91-.62.07-.6.07-.6a2.1 2.1 0 011.53 1.03 2.12 2.12 0 002.89.82 2.13 2.13 0 01.63-1.33c-2.22-.25-4.56-1.11-4.56-4.95a3.87 3.87 0 011.03-2.7 3.6 3.6 0 01.1-2.66s.84-.27 2.75 1.02a9.5 9.5 0 015 0c1.91-1.29 2.75-1.02 2.75-1.02a3.6 3.6 0 01.1 2.66 3.87 3.87 0 011.03 2.7c0 3.85-2.34 4.7-4.57 4.95a2.39 2.39 0 01.68 1.86v2.76c0 .27.18.58.69.48A10 10 0 0012 2z"/>
+        </svg>
+      </a>
+      <a href="https://threads.net/@geanpau.lo" target="_blank" rel="noopener noreferrer" aria-label="Threads" class="social-btn" title="Threads">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2a9 9 0 109 9 9 9 0 00-9-9zm0 16a7 7 0 01-7-7 7.1 7.1 0 011.2-4.14l9.94 9.93A7.08 7.08 0 0112 18zm4.66-1.7L6.72 6.37A7.06 7.06 0 0116.67 5a7 7 0 010 11.3z"/>
+        </svg>
+      </a>
+    </div>
+  </div>
 </footer>
+
+<style>
+footer {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  border-top: 1px solid rgba(0,0,0,0.05);
+  color: var(--muted-light);
+  font-size: 13px;
+  user-select: none;
+  padding: 12px 20px;
+  background: var(--card-light);
+  transition: background 0.3s, color 0.3s;
+  z-index: 100;
+  box-sizing: border-box;
+}
+
+body.dark footer {
+  color: var(--muted-dark);
+  border-color: rgba(255,255,255,0.05);
+  background: var(--card-dark);
+}
+
+.footer-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.footer-left a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.footer-left a:hover,
+.footer-left a:focus {
+  text-decoration: underline;
+  outline: none;
+}
+
+.footer-right {
+  display: flex;
+  gap: 12px;
+}
+
+.social-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: var(--accent);
+  border-radius: 6px;
+  color: white;
+  transition: background 0.25s;
+  text-decoration: none;
+}
+
+.social-btn svg {
+  width: 16px;
+  height: 16px;
+  fill: white;
+}
+
+.social-btn:hover,
+.social-btn:focus {
+  background: var(--accent-hover);
+  outline: none;
+}
+
+@media (max-width: 600px) {
+  .footer-container {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 8px;
+  }
+  .footer-right {
+    justify-content: center;
+  }
+}
+</style>
 
 <input type="file" id="fileInput" accept="application/json" style="display:none" />
 
@@ -367,10 +482,16 @@ const fileInput = document.getElementById('fileInput');
 const clearBtn = document.getElementById('clearBtn');
 const deleteBtn = document.getElementById('deleteBtn');
 const saveBtn = document.getElementById('saveBtn');
+const newBtn = document.getElementById('newBtn');
+const darkModeToggle = document.getElementById('darkModeToggle');
 const noteCount = document.getElementById('noteCount');
 
-const id = () => 'n_' + Date.now();
-const now = () => new Date().toISOString();
+function id() {
+  return 'n_' + Date.now();
+}
+function now() {
+  return new Date().toISOString();
+}
 
 function load() {
   notes = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
@@ -380,25 +501,17 @@ function saveAll() {
   renderList(searchInput.value);
 }
 
-function renderList(filter='') {
+function renderList(filter = '') {
   const q = filter.toLowerCase();
   notesList.innerHTML = '';
   notes
     .filter(n => n.title.toLowerCase().includes(q) || n.body.toLowerCase().includes(q))
-    .sort((a,b) => new Date(b.updated) - new Date(a.updated))
+    .sort((a,b) => new Date(b.updated)-new Date(a.updated))
     .forEach(n => {
       const el = document.createElement('div');
       el.className = 'note-item' + (n.id === activeId ? ' active' : '');
-      el.tabIndex = 0;
-      el.setAttribute('role', 'listitem');
       el.innerHTML = `<div class="note-title">${n.title || '(Untitled)'}</div><div class="note-meta">${new Date(n.updated).toLocaleString()}</div>`;
       el.onclick = () => selectNote(n.id);
-      el.onkeydown = e => {
-        if(e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          selectNote(n.id);
-        }
-      };
       notesList.appendChild(el);
     });
   noteCount.textContent = notes.length;
@@ -412,7 +525,7 @@ function selectNote(id) {
   noteBody.value = n.body;
   noteInfo.textContent = `Last saved: ${new Date(n.updated).toLocaleString()}`;
   updateCounts();
-  updateUIState();
+  autoResizeTextarea(noteBody);
 }
 
 function newNote() {
@@ -420,18 +533,18 @@ function newNote() {
   notes.push(n);
   saveAll();
   selectNote(n.id);
+  noteTitle.focus();
 }
 
 function saveActive() {
   if (!activeId) return;
   const n = notes.find(x => x.id === activeId);
-  if(!n) return;
+  if (!n) return;
   n.title = noteTitle.value;
   n.body = noteBody.value;
   n.updated = now();
   saveAll();
   noteInfo.textContent = `Last saved: ${new Date(n.updated).toLocaleString()}`;
-  updateUIState();
 }
 
 function deleteActive() {
@@ -443,45 +556,45 @@ function deleteActive() {
   noteBody.value = '';
   noteInfo.textContent = 'No note selected';
   saveAll();
-  updateCounts();
-  updateUIState();
 }
 
 function updateCounts() {
   const text = noteBody.value;
-  charWordCount.textContent = `${text.length} chars, ${text.trim().split(/\s+/).filter(Boolean).length} words`;
+  const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
+  charWordCount.textContent = `${text.length} chars, ${wordCount} words`;
+}
+
+// Auto resize textarea height
+function autoResizeTextarea(textarea) {
+  textarea.style.height = 'auto';
+  textarea.style.height = textarea.scrollHeight + 'px';
 }
 
 function updateUIState() {
-  const hasActive = !!activeId;
-  saveBtn.disabled = !hasActive;
-  deleteBtn.disabled = !hasActive;
+  saveBtn.disabled = !activeId;
+  deleteBtn.disabled = !activeId;
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  load();
-  if (notes.length) selectNote(notes[0].id);
-  renderList();
-  updateCounts();
-  updateUIState();
-
-  if (localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark');
+searchInput.addEventListener('input', () => {
+  renderList(searchInput.value);
 });
 
-document.getElementById('newBtn').onclick = () => newNote();
-saveBtn.onclick = () => saveActive();
-deleteBtn.onclick = () => deleteActive();
+noteTitle.addEventListener('input', () => {
+  saveActive();
+});
 
-noteTitle.addEventListener('input', () => updateUIState());
 noteBody.addEventListener('input', () => {
+  autoResizeTextarea(noteBody);
   updateCounts();
-  updateUIState();
+  saveActive();
 });
 
-searchInput.oninput = () => renderList(searchInput.value);
+newBtn.onclick = newNote;
+saveBtn.onclick = saveActive;
+deleteBtn.onclick = deleteActive;
 
 exportBtn.onclick = () => {
-  const blob = new Blob([JSON.stringify(notes, null, 2)], {type:'application/json'});
+  const blob = new Blob([JSON.stringify(notes, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -499,10 +612,11 @@ fileInput.onchange = e => {
   reader.onload = () => {
     try {
       const imported = JSON.parse(reader.result);
+      // Avoid duplicate IDs
       notes = notes.concat(imported.filter(im => !notes.find(n => n.id === im.id)));
       saveAll();
     } catch {
-      alert('Import failed: Invalid JSON file.');
+      alert('Import failed: invalid JSON');
     }
   };
   reader.readAsText(file);
@@ -516,15 +630,26 @@ clearBtn.onclick = () => {
     noteTitle.value = '';
     noteBody.value = '';
     noteInfo.textContent = 'No note selected';
-    updateCounts();
     updateUIState();
   }
 };
 
-document.getElementById('darkModeToggle').onclick = () => {
+darkModeToggle.onclick = () => {
   document.body.classList.toggle('dark');
   localStorage.setItem('darkMode', document.body.classList.contains('dark'));
 };
+
+function init() {
+  load();
+  renderList();
+  if (notes.length) selectNote(notes[0].id);
+  updateCounts();
+  updateUIState();
+  autoResizeTextarea(noteBody);
+  if (localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark');
+}
+
+init();
 </script>
 </body>
 </html>
