@@ -17,7 +17,7 @@ A modern, offline-first, browser-based notes application built with **HTML, CSS,
 ### Run Locally
 
 1. Clone or download this repository:
-   git clone https://github.com/yourusername/notes-app.git
+   git clone https://github.com/geanpaulofrancois/Notes-App.git
    cd notes-app
 
 2.	Start a local server (requires Python 3):
