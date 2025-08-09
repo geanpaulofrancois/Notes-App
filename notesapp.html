@@ -98,6 +98,14 @@ body.dark .btn {
   background: var(--accent-hover);
 }
 
+/* Compact buttons for save and delete */
+.btn.compact {
+  padding: 6px 10px;
+  font-size: 14px;
+  width: auto;
+  min-width: 70px;
+}
+
 /* Layout */
 .app {
   width: 80%;
@@ -191,6 +199,7 @@ body.dark .note-meta {
   border-radius: var(--radius);
   border: 1px solid #d0d7de;
   font-weight: 600;
+  autocomplete: off;
 }
 textarea {
   flex: 1;
@@ -211,14 +220,6 @@ textarea {
 }
 body.dark .bottom {
   color: var(--muted-dark);
-}
-.preview {
-  padding: 14px;
-  border-radius: var(--radius);
-  background: rgba(14,165,164,0.05);
-  margin-top: 12px;
-  overflow: auto;
-  min-height: 200px;
 }
 
 /* Footer */
@@ -250,18 +251,18 @@ body.dark footer {
 <nav>
   <h1>Notes</h1>
   <div class="nav-controls">
-    <button class="btn primary" id="newBtn">New</button>
-    <button class="btn" id="exportBtn">Export</button>
-    <button class="btn" id="importBtn">Import</button>
-    <button class="btn" id="clearBtn">Clear</button>
-    <button class="btn" id="darkModeToggle">🌓</button>
+    <button class="btn primary" id="newBtn" type="button">New</button>
+    <button class="btn" id="exportBtn" type="button">Export</button>
+    <button class="btn" id="importBtn" type="button">Import</button>
+    <button class="btn" id="clearBtn" type="button">Clear</button>
+    <button class="btn" id="darkModeToggle" type="button">🌓</button>
   </div>
 </nav>
 
 <div class="app">
   <div class="card sidebar">
     <div class="search">
-      <input id="searchInput" placeholder="Search notes..." />
+      <input id="searchInput" placeholder="Search notes..." autocomplete="off" />
     </div>
     <div class="notes-list" id="notesList"></div>
     <div style="padding:10px;font-size:12px;color:gray;">
@@ -270,17 +271,16 @@ body.dark footer {
   </div>
 
   <div class="card editor">
-    <input class="title" id="noteTitle" placeholder="Note title..." />
+    <input class="title" id="noteTitle" placeholder="Note title..." autocomplete="off" />
     <textarea id="noteBody" placeholder="Write your note here..."></textarea>
+    <div style="margin-top: 10px; display: flex; gap: 10px;">
+      <button class="btn primary compact" id="saveBtn" type="button">Save</button>
+      <button class="btn compact" id="deleteBtn" style="background:#ff4d4d;color:white;" type="button">Delete</button>
+    </div>
     <div class="bottom">
       <span id="noteInfo">No note selected</span>
       <span id="charWordCount">0 chars, 0 words</span>
     </div>
-    <div id="previewArea" style="display:none;">
-      <div class="preview" id="previewContent"></div>
-    </div>
-    <button class="btn" id="previewToggle" style="margin-top:10px;">Preview</button>
-    <button class="btn" id="deleteBtn" style="margin-top:10px;background:#ff4d4d;color:white;">Delete</button>
   </div>
 </div>
 
@@ -300,15 +300,13 @@ const noteTitle = document.getElementById('noteTitle');
 const noteBody = document.getElementById('noteBody');
 const noteInfo = document.getElementById('noteInfo');
 const charWordCount = document.getElementById('charWordCount');
-const previewToggle = document.getElementById('previewToggle');
-const previewArea = document.getElementById('previewArea');
-const previewContent = document.getElementById('previewContent');
 const searchInput = document.getElementById('searchInput');
 const exportBtn = document.getElementById('exportBtn');
 const importBtn = document.getElementById('importBtn');
 const fileInput = document.getElementById('fileInput');
 const clearBtn = document.getElementById('clearBtn');
 const deleteBtn = document.getElementById('deleteBtn');
+const saveBtn = document.getElementById('saveBtn');
 const noteCount = document.getElementById('noteCount');
 
 const id = () => 'n_' + Date.now();
@@ -317,6 +315,7 @@ const now = () => new Date().toISOString();
 function load() {
   notes = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
 }
+
 function saveAll() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
   renderList(searchInput.value);
@@ -339,13 +338,17 @@ function renderList(filter='') {
 }
 
 function selectNote(id) {
-  const n = notes.find(x=>x.id===id);
-  if (!n) return;
+  const n = notes.find(x => x.id === id);
+  if (!n) {
+    console.warn('Note not found for id:', id);
+    return;
+  }
   activeId = n.id;
   noteTitle.value = n.title;
   noteBody.value = n.body;
   noteInfo.textContent = `Last saved: ${new Date(n.updated).toLocaleString()}`;
   updateCounts();
+  updateUIState();
 }
 
 function newNote() {
@@ -353,62 +356,57 @@ function newNote() {
   notes.push(n);
   saveAll();
   selectNote(n.id);
+  updateUIState();
 }
 
 function saveActive() {
-  if (!activeId) return;
-  const n = notes.find(x=>x.id===activeId);
+  if (!activeId) {
+    alert('No note selected to save!');
+    return;
+  }
+  const n = notes.find(x => x.id === activeId);
+  if (!n) {
+    alert('Active note not found!');
+    return;
+  }
   n.title = noteTitle.value;
   n.body = noteBody.value;
   n.updated = now();
   saveAll();
+  noteInfo.textContent = `Last saved: ${new Date(n.updated).toLocaleString()}`;
+  updateUIState();
 }
 
 function deleteActive() {
-  if (!activeId) return;
+  if (!activeId) {
+    alert('No note selected to delete!');
+    return;
+  }
   if (!confirm('Delete this note?')) return;
-  notes = notes.filter(n=>n.id!==activeId);
+  notes = notes.filter(n => n.id !== activeId);
   activeId = null;
   noteTitle.value = '';
   noteBody.value = '';
   noteInfo.textContent = 'No note selected';
   saveAll();
+  updateUIState();
 }
 
 function updateCounts() {
   const text = noteBody.value;
-  charWordCount.textContent = `${text.length} chars, ${text.trim().split(/\s+/).filter(Boolean).length} words`;
+  const words = text.trim() ? text.trim().split(/\s+/).filter(Boolean).length : 0;
+  charWordCount.textContent = `${text.length} chars, ${words} words`;
 }
 
-function renderMarkdown(md) {
-  if (!md) return '';
-  let html = md.replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
-  html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
-  html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
-  html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-  html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
-  html = html.replace(/\`(.*?)\`/g, '<code>$1</code>');
-  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
-  return html.replace(/\n/g, '<br>');
-}
-
-function togglePreview() {
-  if (previewArea.style.display === 'none') {
-    previewArea.style.display = 'block';
-    previewContent.innerHTML = renderMarkdown(noteBody.value);
-    previewToggle.textContent = 'Edit';
-  } else {
-    previewArea.style.display = 'none';
-    previewToggle.textContent = 'Preview';
-  }
+function updateUIState() {
+  const enabled = activeId !== null;
+  deleteBtn.disabled = !enabled;
+  saveBtn.disabled = !enabled;
 }
 
 document.getElementById('newBtn').onclick = newNote;
-noteTitle.oninput = saveActive;
-noteBody.oninput = () => { saveActive(); updateCounts(); if (previewArea.style.display!=='none') previewContent.innerHTML = renderMarkdown(noteBody.value); };
-previewToggle.onclick = togglePreview;
-deleteBtn.onclick = deleteActive;
+noteTitle.oninput = () => updateCounts();
+noteBody.oninput = () => updateCounts();
 searchInput.oninput = () => renderList(searchInput.value);
 exportBtn.onclick = () => {
   const blob = new Blob([JSON.stringify(notes, null, 2)], {type:'application/json'});
@@ -424,14 +422,25 @@ fileInput.onchange = e => {
   reader.onload = () => {
     try {
       const imported = JSON.parse(reader.result);
-      notes = notes.concat(imported.filter(im => !notes.find(n => n.id===im.id)));
+      notes = notes.concat(imported.filter(im => !notes.find(n => n.id === im.id)));
       saveAll();
     } catch { alert('Import failed'); }
   };
   reader.readAsText(file);
 };
 clearBtn.onclick = () => {
-  if (confirm('Clear all notes?')) { notes = []; saveAll(); activeId=null; noteTitle.value=''; noteBody.value=''; }
+  if (confirm('Clear all notes?')) {
+    notes = [];
+    saveAll();
+    activeId = null;
+    noteTitle.value = '';
+    noteBody.value = '';
+    noteInfo.textContent = 'No note selected';
+    updateUIState();
+  }
+};
+saveBtn.onclick = () => {
+  saveActive();
 };
 
 // Dark mode toggle
@@ -443,10 +452,10 @@ document.getElementById('darkModeToggle').onclick = () => {
 // Init
 (() => {
   load();
-  if (notes.length) selectNote(notes[0].id);
   renderList();
+  if (notes.length) selectNote(notes[0].id);
   updateCounts();
-  if (localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark');
+  updateUIState();
 })();
 </script>
 </body>
